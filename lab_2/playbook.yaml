@@ -1,0 +1,87 @@
+---
+- name: NTP and OSPF configuration on MikroTik CHR
+  hosts: routers
+  gather_facts: false
+  vars:
+    ntp_servers: "pool.ntp.org"
+    ospf_instance_name: "v2inst"
+    ospf_area_name: "backbone_v2"
+    ospf_area_id: "0.0.0.0"
+
+  tasks:
+    # Настройка NTP Client
+    - name: Configure NTP client
+      community.routeros.api_find_and_modify:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        path: system/ntp/client
+        find: {}
+        values:
+          enabled: "yes"
+          servers: "{{ ntp_servers }}"
+
+    # Создание loopback интерфейса
+    - name: Create loopback interface if not exists
+      community.routeros.command:
+        commands:
+          - ":if ([/interface bridge find name=loopback0] = \"\") do={ /interface bridge add name=loopback0 }"
+
+    # Добавление IP на loopback
+    - name: Assign IP address to loopback
+      community.routeros.command:
+        commands:
+          - ":if ([/ip address find interface=loopback0 address={{ router_id }}/32] = \"\") do={ /ip address add address={{ router_id }}/32 interface=loopback0 }"
+
+    # Настройка OSPF Router ID
+    - name: Ensure OSPF instance exists
+      community.routeros.command:
+        commands:
+          - ":if ([/routing ospf instance find name={{ ospf_instance_name }}] = \"\") do={ /routing ospf instance add name={{ ospf_instance_name }} version=2 router-id={{ router_id }} }"
+
+    # Добавление OSPF области
+    - name: Configure OSPF backbone area
+      community.routeros.command:
+        commands:
+          - ":if ([/routing ospf area find name={{ ospf_area_name }}] = \"\") do={ /routing ospf area add name={{ ospf_area_name }} area-id={{ ospf_area_id }} instance={{ ospf_instance_name }} }"
+
+    # Добавление OSPF интерфейс-шаблона
+    - name: Configure OSPF interface template
+      community.routeros.command:
+        commands:
+          - ":if ([/routing ospf interface-template find networks=0.0.0.0/0] = \"\") do={ /routing ospf interface-template add networks=0.0.0.0/0 area={{ ospf_area_name }} }"
+
+    # Сбор OSPF данных
+    - name: Collect OSPF instances info
+      community.routeros.command:
+        commands:
+          - /routing ospf instance print
+      register: ospf_instances
+
+    - name: Collect OSPF neighbors info
+      community.routeros.command:
+        commands:
+          - /routing ospf neighbor print
+      register: ospf_neighbors
+
+    # Вывод OSPF информации
+    - name: Display OSPF instances
+      debug:
+        var: ospf_instances.stdout
+
+    - name: Display OSPF neighbors
+      debug:
+        var: ospf_neighbors.stdout
+
+    # Сбор полного конфига устройства
+    - name: Export full configuration
+      community.routeros.command:
+        commands:
+          - /export
+      register: router_config
+
+    - name: Save configuration locally
+      copy:
+        content: "{{ router_config.stdout | join('\n') }}"
+        dest: "./config_backups/{{ inventory_hostname }}.cfg"
+      delegate_to: localhost
