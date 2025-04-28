@@ -1,0 +1,28 @@
+- name: Configure Mikrotik CHR devices
+  hosts: all
+  gather_facts: no
+
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_network_os: community.routeros.routeros
+
+    ansible_host: "{{ hostvars[inventory_hostname].ansible_host }}"
+    ansible_user: "{{ hostvars[inventory_hostname].custom_fields.ssh_user }}"
+    ansible_password: "{{ hostvars[inventory_hostname].custom_fields.ssh_password }}"
+
+  tasks:
+    - name: Configure device hostname
+      community.routeros.command:
+        commands:
+          - /system identity set name="{{ inventory_hostname }}"
+
+    - name: Add IP address to interface
+      community.routeros.command:
+        commands:
+          - /ip address add address="{{ hostvars[inventory_hostname].custom_fields.ip_address }}" interface={{ hostvars[inventory_hostname].custom_fields.interface }}
+      register: ip_result
+      failed_when: "ip_result.failed and 'failure: already have such address' not in ip_result.msg"
+
+    - name: Show configuration result
+      ansible.builtin.debug:
+        msg: "Device {{ inventory_hostname }} configured successfully"

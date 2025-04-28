@@ -1,0 +1,4 @@
+plugin: netbox.netbox.nb_inventory
+api_endpoint: http://10.8.0.14:8000
+token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+validate_certs: false

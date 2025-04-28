@@ -1,0 +1,41 @@
+- name: Sync MikroTik CHR system ID to NetBox
+  hosts: all
+  gather_facts: no
+
+  vars:
+    # Connection settings for RouterOS
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_network_os: community.routeros.routeros
+    ansible_host: "{{ hostvars[inventory_hostname].ansible_host }}"
+    ansible_user: "{{ hostvars[inventory_hostname].custom_fields.ssh_user }}"
+    ansible_password: "{{ hostvars[inventory_hostname].custom_fields.ssh_password }}"
+
+    # NetBox API settings
+    netbox_url: "http://10.8.0.14:8000"
+    netbox_token: "{{ lookup('env','NETBOX_TOKEN') }}"
+    netbox_validate_certs: false
+
+  tasks:
+    - name: Gather system license information
+      community.routeros.command:
+        commands:
+          - /system license print
+      register: license_output
+
+    - name: Extract system ID
+      ansible.builtin.set_fact:
+        device_system_id: "{{license_output.stdout_lines[0][0].split(' ')[1]}}"
+
+    - name: Update device serial (system ID) in NetBox
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: "{{ netbox_validate_certs }}"
+        data:
+          name: "{{ inventory_hostname }}"
+          serial: "{{ device_system_id }}"
+        state: present
+
+    - name: Display update result
+      ansible.builtin.debug:
+        msg: "Device {{ inventory_hostname }}: system ID {{ device_system_id }} has been updated in NetBox"

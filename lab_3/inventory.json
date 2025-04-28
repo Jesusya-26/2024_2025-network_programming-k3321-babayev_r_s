@@ -1,0 +1,88 @@
+{
+    "_meta": {
+        "hostvars": {
+            "Mikrotik_CHR1": {
+                "ansible_host": "10.8.0.6",
+                "custom_fields": {
+                    "ssh_password": "1111",
+                    "ssh_user": "admin"
+                },
+                "device_roles": [
+                    "router"
+                ],
+                "device_types": [
+                    "chr"
+                ],
+                "is_virtual": false,
+                "local_context_data": [
+                    null
+                ],
+                "locations": [],
+                "manufacturers": [
+                    "mikrotik"
+                ],
+                "platforms": [
+                    "routeros"
+                ],
+                "primary_ip4": "10.8.0.6",
+                "regions": [],
+                "serial": "",
+                "services": [],
+                "site_groups": [],
+                "sites": [
+                    "lab3"
+                ],
+                "status": {
+                    "label": "Active",
+                    "value": "active"
+                },
+                "tags": []
+            },
+            "Mikrotik_CHR2": {
+                "ansible_host": "10.8.0.10",
+                "custom_fields": {
+                    "ssh_password": "1111",
+                    "ssh_user": "admin"
+                },
+                "device_roles": [
+                    "router"
+                ],
+                "device_types": [
+                    "chr"
+                ],
+                "is_virtual": false,
+                "local_context_data": [
+                    null
+                ],
+                "locations": [],
+                "manufacturers": [
+                    "mikrotik"
+                ],
+                "primary_ip4": "10.8.0.10",
+                "regions": [],
+                "serial": "",
+                "services": [],
+                "site_groups": [],
+                "sites": [
+                    "lab3"
+                ],
+                "status": {
+                    "label": "Active",
+                    "value": "active"
+                },
+                "tags": []
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    },
+    "ungrouped": {
+        "hosts": [
+            "Mikrotik_CHR1",
+            "Mikrotik_CHR2"
+        ]
+    }
+}

@@ -7,7 +7,7 @@
 * **Year:** 2024/2025
 * **Group:** K3321
 * **Author:** Babayev Ruslan Sagibovich
-* **Lab:** Lab1
+* **Lab:** Lab2
 * **Date of create:** 12.04.2025
 * **Date of finished:** 13.04.2025
 
